@@ -15,17 +15,37 @@ services:
     ports:
       - "9092:9092"
       - "9093:9093"
+      # Port 9094 for controller, if it needs to be exposed externally (usually not needed for single node)
+      # - "9094:9094"
     environment:
-      KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,SSL://kafka:9093
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,SSL:SSL
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      CLUSTER_ID: 'jcP119OGTXmnwjwdSlRZqA'
+
+      # KRaft-like settings (or settings for newer Kafka versions that can run in mixed modes)
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_NODE_ID: 1 # Replaces KAFKA_BROKER_ID
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:9094' # NodeID@Host:ControllerPort
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+
+      # Listener configuration
+      # Listen on all interfaces within the container for all protocols
+      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,SSL://0.0.0.0:9093,CONTROLLER://0.0.0.0:9094'
+      # Advertised listeners are how clients connect
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:9092,SSL://kafka:9093'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'PLAINTEXT:PLAINTEXT,SSL:SSL,CONTROLLER:PLAINTEXT'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT' # For broker-to-broker communication
+
+      # mTLS SSL Configuration
       KAFKA_SSL_CLIENT_AUTH: required
-      KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/kafka.server.keystore.jks
+      KAFKA_SSL_KEYSTORE_FILENAME: kafka.server.keystore.jks # MODIFIED
       KAFKA_SSL_KEYSTORE_PASSWORD: testpassword
       KAFKA_SSL_KEY_PASSWORD: testpassword
-      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/kafka.server.truststore.jks
+      KAFKA_SSL_TRUSTSTORE_FILENAME: kafka.server.truststore.jks # MODIFIED
       KAFKA_SSL_TRUSTSTORE_PASSWORD: testpassword
+
+      # Optional: Consider for single-node Kafka clusters to ensure topics are writable
+      # KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      # KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      # KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
     volumes:
       - ./certs:/etc/kafka/secrets
