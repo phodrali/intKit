@@ -1,0 +1,5 @@
+2025/06/14 13:44:20 Starting Kafka producer...
+2025/06/14 13:44:20 Successfully connected to Kafka broker at localhost:9093
+2025/06/14 13:44:20 Failed to write message 0: dial tcp 127.0.0.1:9093: connect: connection refused
+2025/06/14 13:44:20 Failed to write message 0 after reconnect: dial tcp 127.0.0.1:9093: connect: connection refused
+exit status 1
